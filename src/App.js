@@ -1,46 +1,84 @@
+import React, { useState } from "react";
 import "./App.css";
+import About from "./components/About";
+import Alert from "./components/Alert";
 import Form from "./components/Form";
-import Task from "./components/Task";
-import {
-  collection,
-  query,
-  onSnapshot,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-import { useEffect, useState } from "react";
-import { db } from "./firebase";
+import Navbar from "./components/Navbar";
+import { Routes, Route, Link } from "react-router-dom";
 
 const App = () => {
-  const [task, setTasks] = useState([]);
+  const [darkMode, setDarkMode] = useState("light");
+  const [alert, setalert] = useState(null);
 
-  useEffect(() => {
-    const q = query(collection(db, "tasks"));
-
-    const unsub = onSnapshot(q, (querySnapshot) => {
-      let taskArray = [];
-      querySnapshot.forEach((doc) => {
-        taskArray.push({ ...doc.data(), id: doc.id });
-      });
-      setTasks(taskArray);
+  const showAlert = (message, type) => {
+    setalert({
+      msg: message,
+      type: type,
     });
-    return () => unsub();
-  }, []);
-  console.log(task);
+    setTimeout(() => {
+      setalert(null);
+    }, 1500);
+  };
 
-  const toggleComplete = () => {
-    updateDoc(doc(db, "tasks", task.id), { completed: !task.completed });
+  const toggleMode = () => {
+    if (darkMode === "light") {
+      setDarkMode("dark");
+      document.body.style.backgroundColor = " rgb(30, 46, 61)";
+      document.body.style.color = "white";
+      showAlert("dark mode enabled", "success");
+      document.title = "Text Utility Dark Mode Enabled";
+      setInterval(() => {
+        document.title = "Text Utility is amazing";
+      }, 1600);
+      setInterval(() => {
+        document.title = "Text install now";
+      }, 1400);
+    } else {
+      setDarkMode("light");
+      document.body.style.backgroundColor = "#dfe3ee";
+      document.body.style.color = "black";
+      showAlert("light mode enabled", "success");
+      document.title = "Text Utility Light Mode Enabled";
+    }
+  };
+
+  const toggleModebrown = () => {
+    if (darkMode === "light") {
+      setDarkMode("dark");
+      document.body.style.backgroundColor = " rgb(47, 32, 32)";
+      document.body.style.color = "white";
+      showAlert("dark mode enabled", "success");
+    } else {
+      setDarkMode("light");
+      document.body.style.backgroundColor = "#dfe3ee";
+      document.body.style.color = "black";
+      showAlert("light mode enabled", "success");
+    }
   };
 
   return (
-    <div className="app">
-      <Form />
-      {task.map((task) => {
-        return (
-          <Task toggleComplete={toggleComplete} key={task.id} task={task} />
-        );
-      })}
-      {/* <Task /> */}
+    <div>
+      <Navbar
+        toggleModebrown={toggleModebrown}
+        mode={darkMode}
+        toggleMode={toggleMode}
+      />
+      <Alert alert={alert} />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Form
+              toggleModebrown={toggleModebrown}
+              showAlert={showAlert}
+              mode={darkMode}
+              toggleMode={toggleMode}
+            />
+          }
+        />
+        <Route path="about" element={<About />} />
+      </Routes>
+      {/* <About /> */}
     </div>
   );
 };
